@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.0.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.0.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.0.1" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '7.0.1',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="最近在学习Java的时候发现对异常处理机制理解还不是太深刻，再网上摘抄整理一些内容。 Java异常处理异常是程序中的一些错误，但并不是所有的错误都是异常，并且错误有时候是可以避免的。 比如说，你的代码少了一个分号，那么运行出来结果是提示错误java.lang.Error；如果你用System.out.println(11/0)，那么是因为你用了0做除数，会抛出java.lang.Arithmeti">
+<meta name="keywords" content="Java">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java 异常处理">
+<meta property="og:url" content="https://steflerjiang.github.io/2016/12/22/Java-异常处理/index.html">
+<meta property="og:site_name" content="蒋士正的博客">
+<meta property="og:description" content="最近在学习Java的时候发现对异常处理机制理解还不是太深刻，再网上摘抄整理一些内容。 Java异常处理异常是程序中的一些错误，但并不是所有的错误都是异常，并且错误有时候是可以避免的。 比如说，你的代码少了一个分号，那么运行出来结果是提示错误java.lang.Error；如果你用System.out.println(11/0)，那么是因为你用了0做除数，会抛出java.lang.Arithmeti">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://steflerjiang.github.io/images/Java%20Exception.png">
+<meta property="og:updated_time" content="2019-03-24T18:47:14.313Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java 异常处理">
+<meta name="twitter:description" content="最近在学习Java的时候发现对异常处理机制理解还不是太深刻，再网上摘抄整理一些内容。 Java异常处理异常是程序中的一些错误，但并不是所有的错误都是异常，并且错误有时候是可以避免的。 比如说，你的代码少了一个分号，那么运行出来结果是提示错误java.lang.Error；如果你用System.out.println(11/0)，那么是因为你用了0做除数，会抛出java.lang.Arithmeti">
+<meta name="twitter:image" content="https://steflerjiang.github.io/images/Java%20Exception.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://steflerjiang.github.io/2016/12/22/Java-异常处理/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Java 异常处理 | 蒋士正的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蒋士正的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">前游戏热爱者</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://steflerjiang.github.io/2016/12/22/Java-异常处理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="蒋士正">
+      <meta itemprop="description" content="音浪 太强 不晃 会被撞到地上">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蒋士正的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Java 异常处理
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2016-12-22 11:32:07" itemprop="dateCreated datePublished" datetime="2016-12-22T11:32:07+08:00">2016-12-22</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Edited on</span>
+                
+                <time title="Modified: 2019-03-25 02:47:14" itemprop="dateModified" datetime="2019-03-25T02:47:14+08:00">2019-03-25</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近在学习Java的时候发现对异常处理机制理解还不是太深刻，再网上摘抄整理一些内容。</p>
+<h1 id="Java异常处理"><a href="#Java异常处理" class="headerlink" title="Java异常处理"></a>Java异常处理</h1><p>异常是程序中的一些错误，但并不是所有的错误都是异常，并且错误有时候是可以避免的。</p>
+<p>比如说，你的代码少了一个分号，那么运行出来结果是提示错误java.lang.Error；如果你用System.out.println(11/0)，那么是因为你用了0做除数，会抛出java.lang.ArithmeticException的异常。<br><a id="more"></a></p>
+<p>异常发生的原因有很多，通常包含以下几大类：</p>
+<ul>
+<li>用户输入了非法的数据</li>
+<li>要打开的文件不存在</li>
+<li>网络通信时连接终端，或者JVM内存溢出<br>这些异常有的时候是因为用户错误引起的，有的是程序错误引起的，还有其他一些是物理错误引起的。</li>
+</ul>
+<p>要理解Java异常处理是如何工作的，需要掌握以下三种类型的异常：</p>
+<ul>
+<li><strong>检查性异常</strong>：最具代表的检查性异常是用户错误或问题引起的异常，这是程序员无法预见的。例如要打开一个不存在的文件时，一个异常就发生了，这些异常在编译时不能被简单地忽略。</li>
+<li><strong>运行时异常</strong>：运行时异常是可能被程序员避免的异常。与检查性异常相反，运行时异常可以在编译时被忽略。</li>
+<li><strong>错误</strong>：错误不是异常，而是脱离程序员控制的问题。错误在代码中通常被忽略。例如当栈溢出时，一个错误就发生了，它们在编译时也检查不到。</li>
+</ul>
+<h1 id="Exception类的层次"><a href="#Exception类的层次" class="headerlink" title="Exception类的层次"></a>Exception类的层次</h1><p>所有的异常类是congestionjava.lang.Exception类继承的子类。Exception类是Throwable类的子类。</p>
+<p>Java程序通常不捕获错误。错误一般发生在严重故障时，它们在Java程序处理的范畴之外。Error用来指示运行时环境发生的错误。例如JVM内存溢出，一般的程序不会从错误中恢复。</p>
+<p>异常类有两个主要的子类：IOExceition和RuntimeException类。<br><img src="/images/Java Exception.png" alt="Java异常类继承关系" title="Java异常类继承关系"><br>在Java内置类中，有大部分常用检查性和非检查性异常。</p>
+<h1 id="Java内置异常类"><a href="#Java内置异常类" class="headerlink" title="Java内置异常类"></a>Java内置异常类</h1><p>Java语言定义了一些异常类在java.lang标准包中。标准包运行时异常类的子类是最常见的异常类。由于java.lang包是默认加载到所有的Java程序的，所以大部分从运行时异常类继承而来的异常都可以直接使用。</p>
+<p>Java根据各个类库也定义了一些其他的异常，下面的表中列出了Java的非检查性异常。</p>
+<table>
+<thead>
+<tr>
+<th>异常</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ArithmeticException</td>
+<td>当出现异常的运算条件时，抛出此异常，例如除0的时候</td>
+</tr>
+<tr>
+<td>ArrayIndexOutOfBoundsException</td>
+<td>用非法索引访问数组时抛出的异常。如果索引为负或者大于等于数组大小，则该索引为非法索引。</td>
+</tr>
+<tr>
+<td>ArrayStoreException</td>
+<td>试图将错误类型的对象存储到一个对象数组时抛出的异常</td>
+</tr>
+<tr>
+<td>CLassCastException</td>
+<td>当试图将对象强制转换为不是实例的子类时，抛出该异常</td>
+</tr>
+<tr>
+<td>IllegalArgumentException</td>
+<td>抛出的异常表明向方法传递了一个不合法或不正确的参数</td>
+</tr>
+<tr>
+<td>IllegalMonitorStateException</td>
+<td>抛出的异常表明某一线程已经试图等待对象的监视器，或者试图通过其他正在等待对象的监视器而本身没有制定监视器的线程</td>
+</tr>
+<tr>
+<td>IllegalStateException</td>
+<td>在非法或不适当的时间调用方法时产生的信号。换句话说，即Java环境或Java应用程序没有出去请求操作所要求的适当状态下。</td>
+</tr>
+<tr>
+<td>IllegalThreadStateException</td>
+<td>线程没有处于请求操作所要求的适当状态时抛出的异常</td>
+</tr>
+<tr>
+<td>IndexOutOfBoundsException</td>
+<td>指示某排序索引（例如对数组、字符串或向量的排序）超出范围时抛出</td>
+</tr>
+<tr>
+<td>NegativeArraySizeException</td>
+<td>如果应用程序试图创建大小为负的数组，则抛出该异常</td>
+</tr>
+<tr>
+<td>NullPointerException</td>
+<td>当程序驶入在需要对象的地方使用Null时，抛出该异常</td>
+</tr>
+<tr>
+<td>NumberFormatException</td>
+<td>当程序试图将字符串转换成一种数值类型，但该字符串不能转换为适当格式时，抛出该异常</td>
+</tr>
+<tr>
+<td>SecurityException</td>
+<td>由安全管理器抛出的异常，指示存在安全侵犯</td>
+</tr>
+<tr>
+<td>StringIndexOutOfBoundsException</td>
+<td>此异常由String方法抛出，指示索引为负，或者超出字符串的大小</td>
+</tr>
+<tr>
+<td>UnSupportedOperationException</td>
+<td>当不支持请求的操作时，抛出该异常</td>
+</tr>
+</tbody>
+</table>
+<p>下面的表列出了Java定义在java.lang包中的检查性异常类。</p>
+<table>
+<thead>
+<tr>
+<th>异常</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ClassNotFoundException</td>
+<td>程序试图加载类时，找不到相应的类，抛出该异常</td>
+</tr>
+<tr>
+<td>CloneNotSupportedException</td>
+<td>当调用Object类中的clone方法克隆对象，但该对象的类无法实现Clonneable接口时，抛出该异常</td>
+</tr>
+<tr>
+<td>IllegalAccessExceoption</td>
+<td>拒绝访问一个类的时候，抛出该异常</td>
+</tr>
+<tr>
+<td>InstantiationException</td>
+<td>当试图使用Class类中的newInstance方法创建一个类的实例，而指定的类对象因为是一个接口或是一个抽象类而无法实例化时，抛出该异常</td>
+</tr>
+<tr>
+<td>InterrupedException</td>
+<td>一个线程被另一个线程终端，抛出该异常</td>
+</tr>
+<tr>
+<td>NoSuchFieldException</td>
+<td>请求的变量不存在</td>
+</tr>
+<tr>
+<td>NoSuchMethonException</td>
+<td>请求的方法不存在</td>
+</tr>
+</tbody>
+</table>
+<h1 id="异常方法"><a href="#异常方法" class="headerlink" title="异常方法"></a>异常方法</h1><p>下面的列表是Throwable类的主要方法：</p>
+<table>
+<thead>
+<tr>
+<th>序号</th>
+<th>方法及说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>public String getMessage()</code>返回关于发生的异常的详细信息。这个消息在</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>public Throwable getCause()</code>返回一个THrowable对象代表异常原因</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>public String toString()</code>使用getMessage()的结果返回类的串级名称</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>public void printStackTrace()</code>打印toString()结果和栈层次到System.err，即错误输出流</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>puvlic StackTraceElement[] getStackTrace()</code>返回一个包含堆栈层次的数组，下标为0的元素代表栈顶，最好一个元素代表方法调用堆栈的栈底</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>public Throwable fillInStackTrace()</code>用当前的调用栈层次填充Throwable对象栈层次，添加到栈层次任何先前信息中</td>
+</tr>
+</tbody>
+</table>
+<h1 id="捕获异常"><a href="#捕获异常" class="headerlink" title="捕获异常"></a>捕获异常</h1><p>使用try和catch关键词可以捕获异常，try/catch代码块放在异常可能发生的地方。使用try/catch的语法如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 程序代码</span></span><br><span class="line">&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    <span class="comment">// catch 块</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="多重捕获块"><a href="#多重捕获块" class="headerlink" title="多重捕获块"></a>多重捕获块</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>&#123;</span><br><span class="line">   <span class="comment">// 程序代码</span></span><br><span class="line">&#125;<span class="keyword">catch</span>(异常类型<span class="number">1</span> 异常的变量名<span class="number">1</span>)&#123;</span><br><span class="line">  <span class="comment">// 程序代码</span></span><br><span class="line">&#125;<span class="keyword">catch</span>(异常类型<span class="number">2</span> 异常的变量名<span class="number">2</span>)&#123;</span><br><span class="line">  <span class="comment">// 程序代码</span></span><br><span class="line">&#125;<span class="keyword">catch</span>(异常类型<span class="number">2</span> 异常的变量名<span class="number">2</span>)&#123;</span><br><span class="line">  <span class="comment">// 程序代码</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的代码段包含了 3 个 catch块。<br>可以在 try 语句后面添加任意数量的 catch 块。<br>如果保护代码中发生异常，异常被抛给第一个 catch 块。<br>如果抛出异常的数据类型与 ExceptionType1 匹配，它在这里就会被捕获。<br>如果不匹配，它会被传递给第二个 catch 块。<br>如此，直到异常被捕获或者通过所有的 catch 块。</p>
+<h1 id="throw-throws关键字"><a href="#throw-throws关键字" class="headerlink" title="throw/throws关键字"></a>throw/throws关键字</h1><p>如果一个方法没有捕获一个检查性异常，那么该方法必须使用throws关键字来声明。throws关键字放在方法签名的尾部，也可以使用throw关键字抛出一个异常，无论它是新实例化的还是刚捕获到的。</p>
+<p>下面方法的声明抛出一个 RemoteException 异常：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">className</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">     <span class="function"><span class="keyword">void</span> <span class="title">deposit</span><span class="params">(<span class="keyword">double</span> amount)</span> <span class="keyword">throws</span> RemoteException</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="comment">// Method implementation</span></span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RemoteException();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//Remainder of class definition</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="finally关键字"><a href="#finally关键字" class="headerlink" title="finally关键字"></a>finally关键字</h1><p>finally关键字用来创建在try代码块后面执行的代码块。无论是否发生异常，finally代码块中的代码总会被执行。在finally代码块中，可以运行清理类型等收尾善后性质的语句。语法如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>&#123;</span><br><span class="line">    <span class="comment">// 程序代码</span></span><br><span class="line">&#125;<span class="keyword">catch</span>(异常类型<span class="number">1</span> 异常的变量名<span class="number">1</span>)&#123;</span><br><span class="line">    <span class="comment">// 程序代码</span></span><br><span class="line">&#125;<span class="keyword">catch</span>(异常类型<span class="number">2</span> 异常的变量名<span class="number">2</span>)&#123;</span><br><span class="line">     程序代码</span><br><span class="line">&#125;<span class="keyword">finally</span>&#123;</span><br><span class="line">    <span class="comment">// 程序代码</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>注意事项：</p>
+<ul>
+<li>catch不能独立于try存在</li>
+<li>在try/catch后面添加finally块并非强制性要求</li>
+<li>try代码后不能既没有catch块又没有finally块</li>
+<li>try，catch，finally块之间不能添加任何代码</li>
+</ul>
+<h1 id="声明自定义异常"><a href="#声明自定义异常" class="headerlink" title="声明自定义异常"></a>声明自定义异常</h1><p>编写自定义异常类需要注意：</p>
+<ul>
+<li>所有异常类都必须是Throwable的子类</li>
+<li>如果希望写一个检查性异常类，则需要继承Exception类</li>
+<li>如果希望写一个运行时异常类，则需要继承RuntimeException类<br>一个实例<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InsufficientFundsException</span> <span class="keyword">extends</span> <span class="title">Exception</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">double</span> amount;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">InsufficientFundsException</span><span class="params">(<span class="keyword">double</span> amount)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.amount = amount;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getAmount</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> amount;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>为了展示如何使用我们自定义的异常类，在下面的 CheckingAccount 类中包含一个withdraw() 方法抛出一个 InsufficientFundsException 异常。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CheckingAccount</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">   <span class="keyword">private</span> <span class="keyword">double</span> balance;</span><br><span class="line">   <span class="keyword">private</span> <span class="keyword">int</span> number;</span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">CheckingAccount</span><span class="params">(<span class="keyword">int</span> number)</span></span></span><br><span class="line"><span class="function">   </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>.number = number;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deposit</span><span class="params">(<span class="keyword">double</span> amount)</span></span></span><br><span class="line"><span class="function">   </span>&#123;</span><br><span class="line">      balance += amount;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">withdraw</span><span class="params">(<span class="keyword">double</span> amount)</span> <span class="keyword">throws</span></span></span><br><span class="line"><span class="function">                              InsufficientFundsException</span></span><br><span class="line"><span class="function">   </span>&#123;</span><br><span class="line">      <span class="keyword">if</span>(amount &lt;= balance)</span><br><span class="line">      &#123;</span><br><span class="line">         balance -= amount;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">      &#123;</span><br><span class="line">         <span class="keyword">double</span> needs = amount - balance;</span><br><span class="line">         <span class="keyword">throw</span> <span class="keyword">new</span> InsufficientFundsException(needs);</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getBalance</span><span class="params">()</span></span></span><br><span class="line"><span class="function">   </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> balance;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getNumber</span><span class="params">()</span></span></span><br><span class="line"><span class="function">   </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> number;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>下面的 BankDemo 程序示范了如何调用 CheckingAccount 类的 deposit() 和 withdraw() 方法。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BankDemo</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String [] args)</span></span></span><br><span class="line"><span class="function">   </span>&#123;</span><br><span class="line">      CheckingAccount c = <span class="keyword">new</span> CheckingAccount(<span class="number">101</span>);</span><br><span class="line">      System.out.println(<span class="string">"Depositing $500..."</span>);</span><br><span class="line">      c.deposit(<span class="number">500.00</span>);</span><br><span class="line">      <span class="keyword">try</span></span><br><span class="line">      &#123;</span><br><span class="line">         System.out.println(<span class="string">"\nWithdrawing $100..."</span>);</span><br><span class="line">         c.withdraw(<span class="number">100.00</span>);</span><br><span class="line">         System.out.println(<span class="string">"\nWithdrawing $600..."</span>);</span><br><span class="line">         c.withdraw(<span class="number">600.00</span>);</span><br><span class="line">      &#125;<span class="keyword">catch</span>(InsufficientFundsException e)</span><br><span class="line">      &#123;</span><br><span class="line">         System.out.println(<span class="string">"Sorry, but you are short $"</span></span><br><span class="line">                                  + e.getAmount());</span><br><span class="line">         e.printStackTrace();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="通用异常"><a href="#通用异常" class="headerlink" title="通用异常"></a>通用异常</h1><p>在Java中定义了两种类型的异常和错误</p>
+<ul>
+<li>JVM异常：由JVM排除的异常或错误，例如NullPointerException类，ArrayIndexOutOfBoundsException类，ClassCastException类</li>
+<li>程序级异常：由程序或者API程序抛出的异常。例如 IllegalArgumentException 类，IllegalStateException 类。</li>
+</ul>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/12/20/Hexo框架下给博客插入本地图片/" rel="next" title="Hexo框架下给博客插入本地图片">
+                <i class="fa fa-chevron-left"></i> Hexo框架下给博客插入本地图片
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/12/22/Effective-Java-第2条：遇到多个构造器参数时要考虑用构建器/" rel="prev" title="Effective Java-第2条：遇到多个构造器参数时要考虑用构建器">
+                Effective Java-第2条：遇到多个构造器参数时要考虑用构建器 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">蒋士正</p>
+              <div class="site-description motion-element" itemprop="description">音浪 太强 不晃 会被撞到地上</div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">30</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">8</span>
+                    <span class="site-state-item-name">categories</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">20</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Java异常处理"><span class="nav-number">1.</span> <span class="nav-text">Java异常处理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Exception类的层次"><span class="nav-number">2.</span> <span class="nav-text">Exception类的层次</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Java内置异常类"><span class="nav-number">3.</span> <span class="nav-text">Java内置异常类</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#异常方法"><span class="nav-number">4.</span> <span class="nav-text">异常方法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#捕获异常"><span class="nav-number">5.</span> <span class="nav-text">捕获异常</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#多重捕获块"><span class="nav-number">6.</span> <span class="nav-text">多重捕获块</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#throw-throws关键字"><span class="nav-number">7.</span> <span class="nav-text">throw/throws关键字</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#finally关键字"><span class="nav-number">8.</span> <span class="nav-text">finally关键字</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#声明自定义异常"><span class="nav-number">9.</span> <span class="nav-text">声明自定义异常</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#通用异常"><span class="nav-number">10.</span> <span class="nav-text">通用异常</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">蒋士正</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.0.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=7.0.1"></script>
+
+  <script src="/js/src/motion.js?v=7.0.1"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=7.0.1"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=7.0.1"></script>
+<script src="/js/src/post-details.js?v=7.0.1"></script>
+
+
+
+  
+
+
+  <script src="/js/src/next-boot.js?v=7.0.1"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

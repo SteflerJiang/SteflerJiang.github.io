@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.0.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.0.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.0.1" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '7.0.1',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="一、介绍Nested Documents是Solr引擎提供的一种用来描述父子关系的一种Document，描述的是一种一对多的关系。举个例子，一篇博客和很多评论，那么该博客就可以作为父doc的形式存在，而每条评论就可以作为子doc包含在父doc中。">
+<meta name="keywords" content="Java,Solr">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Solr中Nested Doduments拓展">
+<meta property="og:url" content="https://steflerjiang.github.io/2016/12/16/Solr中Nested-Doduments拓展/index.html">
+<meta property="og:site_name" content="蒋士正的博客">
+<meta property="og:description" content="一、介绍Nested Documents是Solr引擎提供的一种用来描述父子关系的一种Document，描述的是一种一对多的关系。举个例子，一篇博客和很多评论，那么该博客就可以作为父doc的形式存在，而每条评论就可以作为子doc包含在父doc中。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-03-24T18:47:14.316Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Solr中Nested Doduments拓展">
+<meta name="twitter:description" content="一、介绍Nested Documents是Solr引擎提供的一种用来描述父子关系的一种Document，描述的是一种一对多的关系。举个例子，一篇博客和很多评论，那么该博客就可以作为父doc的形式存在，而每条评论就可以作为子doc包含在父doc中。">
+
+
+
+
+
+
+  <link rel="canonical" href="https://steflerjiang.github.io/2016/12/16/Solr中Nested-Doduments拓展/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Solr中Nested Doduments拓展 | 蒋士正的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蒋士正的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">前游戏热爱者</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://steflerjiang.github.io/2016/12/16/Solr中Nested-Doduments拓展/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="蒋士正">
+      <meta itemprop="description" content="音浪 太强 不晃 会被撞到地上">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蒋士正的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Solr中Nested Doduments拓展
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2016-12-16 19:35:45" itemprop="dateCreated datePublished" datetime="2016-12-16T19:35:45+08:00">2016-12-16</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Edited on</span>
+                
+                <time title="Modified: 2019-03-25 02:47:14" itemprop="dateModified" datetime="2019-03-25T02:47:14+08:00">2019-03-25</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="一、介绍"><a href="#一、介绍" class="headerlink" title="一、介绍"></a>一、介绍</h1><p><a href="http://yonik.com/solr-nested-objects/" target="_blank" rel="noopener">Nested Documents</a>是Solr引擎提供的一种用来描述父子关系的一种Document，描述的是一种一对多的关系。举个例子，一篇博客和很多评论，那么该博客就可以作为父doc的形式存在，而每条评论就可以作为子doc包含在父doc中。<br><a id="more"></a><br>一个简单的用XML形式描述的Nested Documents如下所示:<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">add</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">doc</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">"id"</span>&gt;</span>1<span class="tag">&lt;/<span class="name">field</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">"title"</span>&gt;</span>Solr adds block join support<span class="tag">&lt;/<span class="name">field</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">"content_type"</span>&gt;</span>parentDocument<span class="tag">&lt;/<span class="name">field</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;<span class="name">doc</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">"id"</span>&gt;</span>2<span class="tag">&lt;/<span class="name">field</span>&gt;</span> </span><br><span class="line">      <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">"comments"</span>&gt;</span>SolrCloud supports it too!<span class="tag">&lt;/<span class="name">field</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">doc</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">doc</span>&gt;</span> </span><br><span class="line">  <span class="tag">&lt;<span class="name">doc</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">"id"</span>&gt;</span>3<span class="tag">&lt;/<span class="name">field</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">"title"</span>&gt;</span>New Lucene and Solr release is out<span class="tag">&lt;/<span class="name">field</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">"content_type"</span>&gt;</span>parentDocument<span class="tag">&lt;/<span class="name">field</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;<span class="name">doc</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">"id"</span>&gt;</span>4<span class="tag">&lt;/<span class="name">field</span>&gt;</span> </span><br><span class="line">      <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">"comments"</span>&gt;</span>Lots of new features<span class="tag">&lt;/<span class="name">field</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">doc</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">doc</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">add</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>在这个例子中，有两个父doc，它们都有<code>content_type=parentDocument</code>，通过这个字段就可以区分出父子doc。</p>
+<p>而为了支持这样的形式，Solr中的schema必须包含一个<strong>indexed/non-stored</strong>的字段<code>_root_</code>。也就是说<em>root</em>这个字段是不需要手动去配置它的值，在Solr内部当以父子关系加入进索引的时候，就会保持该block具有相同的<em>root</em>值，并且它的自增的。当然了子doc也可以作为父doc再去包含子doc，不管继承的深度，同一系的父子doc总是作为一个单独的block存在的，并且一个block中所有的doc都具有相同的<code>_root_</code>字段。</p>
+<h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><p>目前有两个问题需要解决</p>
+<ul>
+<li>如何在只更新父doc的时候同时删除子doc</li>
+<li>如何在查询子doc的时候同时附带相应的父doc的信息</li>
+</ul>
+<p>由于Solr中数据来源是hive，由于自己实现了Build Document这个步骤，所以必须满足Solr中对于父子doc的约束条件。</p>
+<ul>
+<li>Schema中配置了一个indexed/non-stored <code>index</code>字段；</li>
+<li>同一个Block中的所有Documents都拥有相同的<code>_root_</code>字段；</li>
+<li>对于一组父子doc，其存储的位置关系必须是连续的，而且是子doc在前，父doc在后。也即它们的docid必须的连续的，而且父doc的id最大。</li>
+</ul>
+<h2 id="如何在只更新父doc的时候同时删除子doc"><a href="#如何在只更新父doc的时候同时删除子doc" class="headerlink" title="如何在只更新父doc的时候同时删除子doc"></a>如何在只更新父doc的时候同时删除子doc</h2><p>在Solr提供的<code>DirectUpdateHandler2</code>中，我们看到了一个方法<code>doNormalUpdate(AddUpdateCommand cmd)</code>其中是这样更新doc的<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Term idTerm = <span class="keyword">new</span> Term(cmd.isBlock() ? <span class="string">"_root_"</span> : idField.getName(), cmd.getIndexedId());</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (cmd.isBlock()) &#123;</span><br><span class="line">    writer.updateDocuments(updateTerm, cmd);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    Document luceneDocument = cmd.getLuceneDocument();</span><br><span class="line">    <span class="comment">// SolrCore.verbose("updateDocument",updateTerm,luceneDocument,writer);</span></span><br><span class="line">    writer.updateDocument(updateTerm, luceneDocument);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>isBlock()</code>方法用来判断是否有子节点，所以这里idTerm的key就是，有子节点为<code>_root_</code>，无子节点为<code>id</code>。据此可以判断，单独更新父doc时，取<code>id</code>来做update操作，所以相同<code>id</code>的会被更新，也就是父doc被更新。而在更新一个block时，取<code>_root_</code>来做update操作，所以相同<code>_root_</code>的节点会被更新掉。这里Solr显然不提供一种删除所有子doc的方法。</p>
+<p>那么我们要做的就是继承这个类，在它的doNormalUpdate()方法中，只取<em>root</em>来做update操作。不过这也要求，我们更新的这个父doc必须包含<em>root</em>字段，不然是无法判断，你到底是需要更新一条记录还是需要更新一个block。</p>
+<p>做完之后需要在solrconfig.xml中更改原有的配置，添加一项<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">updateHandler</span> <span class="attr">class</span>=<span class="string">"org.apache.solr.MyDirectUpdateHandler2"</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- *** --&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">updateHandler</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="如何在查询子doc的时候同时附带相应的父doc的信息"><a href="#如何在查询子doc的时候同时附带相应的父doc的信息" class="headerlink" title="如何在查询子doc的时候同时附带相应的父doc的信息"></a>如何在查询子doc的时候同时附带相应的父doc的信息</h2><p>有了这样的Nested Documents，就能去做需要的查询。Solr提供了这样一种<a href="https://cwiki.apache.org/confluence/display/solr/Other+Parsers#OtherParsers-BlockJoinQueryParsers" target="_blank" rel="noopener">Block Join Query Parsers</a>的查询方式，其中包括Block Join Children Query Parser和Block Join Parent Query Parser，但是这种查询方式只能支持查询父doc或者是子doc，无法满足我们需要的子doc中包含父doc的某些信息。</p>
+<p>Solr还提供一种Transforming Result Documents，这种transformers可以用来修改返回出的doc信息，包括增加某些固定的字段(ValueAugmenterFactory)，对于父doc来说返回其所有的父子doc(ChildDocTransformerFactory)等等。但是没有我们想要的方式，不过可以在solrconfig.xml中通过配置transformer的方式，来应用自己的transformer。<br>添加的配置信息如下：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">transformer</span> <span class="attr">name</span>=<span class="string">"parent"</span> <span class="attr">class</span>=<span class="string">"org.apache.solr.MyDocTransformerFactory"</span>&gt;</span><span class="tag">&lt;/<span class="name">transformer</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>这也的话，在使用Solr进行查询时，只需要在field中加入<code>[parent parentFilter=type:t extraFields=discount_amount]</code>，来告知需要使用到<code>MyDocTransformerFactory</code>和其中的一些参数。<code>parentFilter</code>用来过滤子doc，只剩下父doc；<code>extraFields</code>用来表明需要额外添加的父doc的字段名。</p>
+<p>在<code>ParentDocTransformer</code>中，其实也是根据上面约束条件三的父子doc的位置关系，找到子doc后面的<em>root</em>值相同的第一个父doc。这里查询父doc，是使用Solr提供的<code>org.apache.lucene.search.join.ToParentBlockJoinQuery</code>。当然了，对于比较少的内容，也可以自己写一个query去做查询，只需要找到所有和子doc的<em>root</em>值相同的docs，并筛选出其中的父doc即可。相对而言，还是第一种效率更高，不过在数量级不多的情况下，第二种也是可以接受的。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+            <a href="/tags/Solr/" rel="tag"># Solr</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/12/16/使用SublimeText3打造漂亮的Markdown编辑器/" rel="next" title="使用SublimeText3打造漂亮的Markdown编辑器">
+                <i class="fa fa-chevron-left"></i> 使用SublimeText3打造漂亮的Markdown编辑器
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/12/17/Effective Java-第1条：考虑用静态工厂方法代替构造器/" rel="prev" title="Effective Java-第1条：考虑用静态工厂方法代替构造器">
+                Effective Java-第1条：考虑用静态工厂方法代替构造器 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">蒋士正</p>
+              <div class="site-description motion-element" itemprop="description">音浪 太强 不晃 会被撞到地上</div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">30</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">8</span>
+                    <span class="site-state-item-name">categories</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">20</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#一、介绍"><span class="nav-number">1.</span> <span class="nav-text">一、介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#问题"><span class="nav-number">2.</span> <span class="nav-text">问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#如何在只更新父doc的时候同时删除子doc"><span class="nav-number">2.1.</span> <span class="nav-text">如何在只更新父doc的时候同时删除子doc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何在查询子doc的时候同时附带相应的父doc的信息"><span class="nav-number">2.2.</span> <span class="nav-text">如何在查询子doc的时候同时附带相应的父doc的信息</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">蒋士正</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.0.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=7.0.1"></script>
+
+  <script src="/js/src/motion.js?v=7.0.1"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=7.0.1"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=7.0.1"></script>
+<script src="/js/src/post-details.js?v=7.0.1"></script>
+
+
+
+  
+
+
+  <script src="/js/src/next-boot.js?v=7.0.1"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

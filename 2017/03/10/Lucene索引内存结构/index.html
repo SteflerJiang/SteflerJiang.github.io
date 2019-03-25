@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.0.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.0.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.0.1" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '7.0.1',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="Lucene索引在内存中的结构主要分为三个部分: field, term, docId，具体如下。 Field在内存中的组织结构field-&amp;gt;fileposition，域名对应在文件中的偏移量，TreeMap&amp;lt;String,Long&amp;gt; fields = new TreeMap&amp;lt;&amp;gt;();.">
+<meta name="keywords" content="Solr,Lucene">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Lucene索引内存结构">
+<meta property="og:url" content="https://steflerjiang.github.io/2017/03/10/Lucene索引内存结构/index.html">
+<meta property="og:site_name" content="蒋士正的博客">
+<meta property="og:description" content="Lucene索引在内存中的结构主要分为三个部分: field, term, docId，具体如下。 Field在内存中的组织结构field-&amp;gt;fileposition，域名对应在文件中的偏移量，TreeMap&amp;lt;String,Long&amp;gt; fields = new TreeMap&amp;lt;&amp;gt;();.">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://steflerjiang.github.io/images/Lucene索引流程.png">
+<meta property="og:updated_time" content="2019-03-24T18:47:14.313Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Lucene索引内存结构">
+<meta name="twitter:description" content="Lucene索引在内存中的结构主要分为三个部分: field, term, docId，具体如下。 Field在内存中的组织结构field-&amp;gt;fileposition，域名对应在文件中的偏移量，TreeMap&amp;lt;String,Long&amp;gt; fields = new TreeMap&amp;lt;&amp;gt;();.">
+<meta name="twitter:image" content="https://steflerjiang.github.io/images/Lucene索引流程.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://steflerjiang.github.io/2017/03/10/Lucene索引内存结构/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Lucene索引内存结构 | 蒋士正的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蒋士正的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">前游戏热爱者</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://steflerjiang.github.io/2017/03/10/Lucene索引内存结构/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="蒋士正">
+      <meta itemprop="description" content="音浪 太强 不晃 会被撞到地上">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蒋士正的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Lucene索引内存结构
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2017-03-10 11:47:23" itemprop="dateCreated datePublished" datetime="2017-03-10T11:47:23+08:00">2017-03-10</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Edited on</span>
+                
+                <time title="Modified: 2019-03-25 02:47:14" itemprop="dateModified" datetime="2019-03-25T02:47:14+08:00">2019-03-25</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Solr/" itemprop="url" rel="index"><span itemprop="name">Solr</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Lucene索引在内存中的结构主要分为三个部分: field, term, docId，具体如下。</p>
+<h1 id="Field在内存中的组织结构"><a href="#Field在内存中的组织结构" class="headerlink" title="Field在内存中的组织结构"></a>Field在内存中的组织结构</h1><p>field-&gt;fileposition，域名对应在文件中的偏移量，<code>TreeMap&lt;String,Long&gt; fields = new TreeMap&lt;&gt;();</code>.</p>
+<a id="more"></a>
+<p>具体代码在org.apache.lucene.codecs.simpletext.SimpleTextFieldsReader中的readFields()方法中。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> TreeMap&lt;String,Long&gt; <span class="title">readFields</span><span class="params">(IndexInput in)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  ChecksumIndexInput input = <span class="keyword">new</span> BufferedChecksumIndexInput(in);</span><br><span class="line">  BytesRefBuilder scratch = <span class="keyword">new</span> BytesRefBuilder();</span><br><span class="line">  TreeMap&lt;String,Long&gt; fields = <span class="keyword">new</span> TreeMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">    SimpleTextUtil.readLine(input, scratch);</span><br><span class="line">    <span class="keyword">if</span> (scratch.get().equals(END)) &#123;</span><br><span class="line">      SimpleTextUtil.checkFooter(input);</span><br><span class="line">      <span class="keyword">return</span> fields;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (StringHelper.startsWith(scratch.get(), FIELD)) &#123;</span><br><span class="line">      String fieldName = <span class="keyword">new</span> String(scratch.bytes(), FIELD.length, scratch.length() - FIELD.length, StandardCharsets.UTF_8);</span><br><span class="line">      fields.put(fieldName, input.getFilePointer());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里存放的value是偏移量。{content:234,keyword:456,title:767}</p>
+<h1 id="Term在内存中的组织结构"><a href="#Term在内存中的组织结构" class="headerlink" title="Term在内存中的组织结构"></a>Term在内存中的组织结构</h1><p>定义了一个有限状态机<code>private FST&lt;PairOutputs.Pair&lt;Long,PairOutputs.Pair&lt;Long,Long&gt;&gt;&gt; fst;</code></p>
+<p>fst的input即term的值，output有三个内容：</p>
+<ul>
+<li>term在倒排表中的偏移量，即在倒排表文件中的位置</li>
+<li>docFreq，即这个term在多少个文档中出现</li>
+<li>totalTermFreq，即这个term在文档中出现的总次数</li>
+</ul>
+<p>具体源码在org.apache.lucene.codecs.simpletext.SimpleTextFieldsReader中的loadTerms()方法中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">loadTerms</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  PositiveIntOutputs posIntOutputs = PositiveIntOutputs.getSingleton();</span><br><span class="line">  <span class="keyword">final</span> Builder&lt;PairOutputs.Pair&lt;Long,PairOutputs.Pair&lt;Long,Long&gt;&gt;&gt; b;</span><br><span class="line">  <span class="keyword">final</span> PairOutputs&lt;Long,Long&gt; outputsInner = <span class="keyword">new</span> PairOutputs&lt;&gt;(posIntOutputs, posIntOutputs);</span><br><span class="line">  <span class="keyword">final</span> PairOutputs&lt;Long,PairOutputs.Pair&lt;Long,Long&gt;&gt; outputs = <span class="keyword">new</span> PairOutputs&lt;&gt;(posIntOutputs,</span><br><span class="line">      outputsInner);</span><br><span class="line">  b = <span class="keyword">new</span> Builder&lt;&gt;(FST.INPUT_TYPE.BYTE1, outputs);</span><br><span class="line">  <span class="comment">// 打开倒排文件表</span></span><br><span class="line">  IndexInput in = SimpleTextFieldsReader.<span class="keyword">this</span>.in.clone();</span><br><span class="line">  <span class="comment">// 定位文件中的位置，这个值就是上面介绍的field保存的偏移量</span></span><br><span class="line">  in.seek(termsStart);</span><br><span class="line">  <span class="keyword">final</span> BytesRefBuilder lastTerm = <span class="keyword">new</span> BytesRefBuilder();</span><br><span class="line">  <span class="keyword">long</span> lastDocsStart = -<span class="number">1</span>;</span><br><span class="line">  <span class="keyword">int</span> docFreq = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">long</span> totalTermFreq = <span class="number">0</span>;</span><br><span class="line">  FixedBitSet visitedDocs = <span class="keyword">new</span> FixedBitSet(maxDoc);</span><br><span class="line">  <span class="keyword">final</span> IntsRefBuilder scratchIntsRef = <span class="keyword">new</span> IntsRefBuilder();</span><br><span class="line">  <span class="keyword">while</span>(<span class="keyword">true</span>) &#123;</span><br><span class="line">    SimpleTextUtil.readLine(in, scratch);</span><br><span class="line">    <span class="keyword">if</span> (scratch.get().equals(END) || StringHelper.startsWith(scratch.get(), FIELD)) &#123;</span><br><span class="line">        <span class="comment">// 读取结束的时候，也把最后一个保存起来，并且保证第一次读到field的时候，lastDocsStart为-1，这时候不保存</span></span><br><span class="line">      <span class="keyword">if</span> (lastDocsStart != -<span class="number">1</span>) &#123;</span><br><span class="line">        b.add(Util.toIntsRef(lastTerm.get(), scratchIntsRef),</span><br><span class="line">            outputs.newPair(lastDocsStart,</span><br><span class="line">                outputsInner.newPair((<span class="keyword">long</span>) docFreq, totalTermFreq)));</span><br><span class="line">        sumTotalTermFreq += totalTermFreq;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (StringHelper.startsWith(scratch.get(), DOC)) &#123;</span><br><span class="line">      docFreq++;</span><br><span class="line">      sumDocFreq++;</span><br><span class="line">      scratchUTF16.copyUTF8Bytes(scratch.bytes(), DOC.length, scratch.length()-DOC.length);</span><br><span class="line">      <span class="keyword">int</span> docID = ArrayUtil.parseInt(scratchUTF16.chars(), <span class="number">0</span>, scratchUTF16.length());</span><br><span class="line">      visitedDocs.set(docID);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (StringHelper.startsWith(scratch.get(), FREQ)) &#123;</span><br><span class="line">      scratchUTF16.copyUTF8Bytes(scratch.bytes(), FREQ.length, scratch.length()-FREQ.length);</span><br><span class="line">      totalTermFreq += ArrayUtil.parseInt(scratchUTF16.chars(), <span class="number">0</span>, scratchUTF16.length());</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (StringHelper.startsWith(scratch.get(), TERM)) &#123;</span><br><span class="line">        <span class="comment">//读取到term的时候，把数据保存到fst中</span></span><br><span class="line">      <span class="keyword">if</span> (lastDocsStart != -<span class="number">1</span>) &#123;</span><br><span class="line">        <span class="comment">//往FST数据结构中添加term数据,lastTerm是term的字节数组,lastDocsStart是这个term在倒排表文件中的偏移量,docFreq是出现这个term的文档数,totalTermFreq是这个term在这些文档中总共出现的次数</span></span><br><span class="line">        b.add(Util.toIntsRef(lastTerm.get(), scratchIntsRef), outputs.newPair(lastDocsStart,</span><br><span class="line">            outputsInner.newPair((<span class="keyword">long</span>) docFreq, totalTermFreq)));</span><br><span class="line">      &#125;</span><br><span class="line">      lastDocsStart = in.getFilePointer();</span><br><span class="line">      <span class="keyword">final</span> <span class="keyword">int</span> len = scratch.length() - TERM.length;</span><br><span class="line">      lastTerm.grow(len);</span><br><span class="line">      System.arraycopy(scratch.bytes(), TERM.length, lastTerm.bytes(), <span class="number">0</span>, len);</span><br><span class="line">      lastTerm.setLength(len);</span><br><span class="line">      docFreq = <span class="number">0</span>;</span><br><span class="line">      sumTotalTermFreq += totalTermFreq;</span><br><span class="line">      totalTermFreq = <span class="number">0</span>;</span><br><span class="line">      termCount++;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  docCount = visitedDocs.cardinality();</span><br><span class="line">  fst = b.finish();</span><br><span class="line">  <span class="comment">/*</span></span><br><span class="line"><span class="comment">  PrintStream ps = new PrintStream("out.dot");</span></span><br><span class="line"><span class="comment">  fst.toDot(ps);</span></span><br><span class="line"><span class="comment">  ps.close();</span></span><br><span class="line"><span class="comment">  System.out.println("SAVED out.dot");</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">  <span class="comment">//System.out.println("FST " + fst.sizeInBytes());</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="docId在内存中的组织结构"><a href="#docId在内存中的组织结构" class="headerlink" title="docId在内存中的组织结构"></a>docId在内存中的组织结构</h1><p>docid -&gt; offset，<code>private long offsets[]; /* docid -&gt; offset in .fld file */</code>，文档id在索引文件（存储文档数据的文件）中的偏移量。</p>
+<p>具体的数据结构是：[12,23,37,77……]，数组的下标就是文档id，值就是文档在文件中的偏移量。</p>
+<p>比如我们要取回文档0的值，那我们根据这个数组找到这个文档在文件中的偏移量是12，然后用随机读定位到文件的这个位置，接着就是read方法取回数据了.源代码在org.apache.lucene.codecs.simpletext.SimpleTextStoredFieldsReader的visitDocument()方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitDocument</span><span class="params">(<span class="keyword">int</span> n, StoredFieldVisitor visitor)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  in.seek(offsets[n]);</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">    readLine();</span><br><span class="line">    <span class="keyword">if</span> (StringHelper.startsWith(scratch.get(), FIELD) == <span class="keyword">false</span>) &#123;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">int</span> fieldNumber = parseIntAt(FIELD.length);</span><br><span class="line">    FieldInfo fieldInfo = fieldInfos.fieldInfo(fieldNumber);</span><br><span class="line">    readLine();</span><br><span class="line">    <span class="keyword">assert</span> StringHelper.startsWith(scratch.get(), NAME);</span><br><span class="line">    readLine();</span><br><span class="line">    <span class="keyword">assert</span> StringHelper.startsWith(scratch.get(), TYPE);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">final</span> BytesRef type;</span><br><span class="line">    <span class="keyword">if</span> (equalsAt(TYPE_STRING, scratch.get(), TYPE.length)) &#123;</span><br><span class="line">      type = TYPE_STRING;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (equalsAt(TYPE_BINARY, scratch.get(), TYPE.length)) &#123;</span><br><span class="line">      type = TYPE_BINARY;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (equalsAt(TYPE_INT, scratch.get(), TYPE.length)) &#123;</span><br><span class="line">      type = TYPE_INT;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (equalsAt(TYPE_LONG, scratch.get(), TYPE.length)) &#123;</span><br><span class="line">      type = TYPE_LONG;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (equalsAt(TYPE_FLOAT, scratch.get(), TYPE.length)) &#123;</span><br><span class="line">      type = TYPE_FLOAT;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (equalsAt(TYPE_DOUBLE, scratch.get(), TYPE.length)) &#123;</span><br><span class="line">      type = TYPE_DOUBLE;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"unknown field type"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">switch</span> (visitor.needsField(fieldInfo)) &#123;</span><br><span class="line">      <span class="keyword">case</span> YES:  </span><br><span class="line">        readField(type, fieldInfo, visitor);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> NO:   </span><br><span class="line">        readLine();</span><br><span class="line">        <span class="keyword">assert</span> StringHelper.startsWith(scratch.get(), VALUE);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> STOP: <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="Lucene搜索时，索引在文件和内存中的状态"><a href="#Lucene搜索时，索引在文件和内存中的状态" class="headerlink" title="Lucene搜索时，索引在文件和内存中的状态"></a>Lucene搜索时，索引在文件和内存中的状态</h1><p>现在用一个搜索过程来看下如何加载和使用这些数据,我们使用的搜索条件是：title=hello</p>
+<p>流程图如下<br><img src="/images/Lucene索引流程.png" alt="lucene索引流程图" title="Lucene索引流程"></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Solr/" rel="tag"># Solr</a>
+          
+            <a href="/tags/Lucene/" rel="tag"># Lucene</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/01/19/Google-Java风格指南/" rel="next" title="Google Java风格指南">
+                <i class="fa fa-chevron-left"></i> Google Java风格指南
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/03/18/使用Automata来索引1-600-000-000个键/" rel="prev" title="使用自动机来索引1,600,000,000个键">
+                使用自动机来索引1,600,000,000个键 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">蒋士正</p>
+              <div class="site-description motion-element" itemprop="description">音浪 太强 不晃 会被撞到地上</div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">30</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">8</span>
+                    <span class="site-state-item-name">categories</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">20</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Field在内存中的组织结构"><span class="nav-number">1.</span> <span class="nav-text">Field在内存中的组织结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Term在内存中的组织结构"><span class="nav-number">2.</span> <span class="nav-text">Term在内存中的组织结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#docId在内存中的组织结构"><span class="nav-number">3.</span> <span class="nav-text">docId在内存中的组织结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Lucene搜索时，索引在文件和内存中的状态"><span class="nav-number">4.</span> <span class="nav-text">Lucene搜索时，索引在文件和内存中的状态</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">蒋士正</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.0.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=7.0.1"></script>
+
+  <script src="/js/src/motion.js?v=7.0.1"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=7.0.1"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=7.0.1"></script>
+<script src="/js/src/post-details.js?v=7.0.1"></script>
+
+
+
+  
+
+
+  <script src="/js/src/next-boot.js?v=7.0.1"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

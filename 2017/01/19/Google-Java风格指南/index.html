@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.0.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.0.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.0.1" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '7.0.1',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="转载一篇Google的Java编程风格指南，自己手打一遍，也算是阅读，顺带添加以下原文和自己的理解。 参考文章 原文 1 简介 Introduction This document serves as the complete definition of Google’s coding standards for source code in the Java™ Programming Langu">
+<meta name="keywords" content="Java">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Google Java风格指南">
+<meta property="og:url" content="https://steflerjiang.github.io/2017/01/19/Google-Java风格指南/index.html">
+<meta property="og:site_name" content="蒋士正的博客">
+<meta property="og:description" content="转载一篇Google的Java编程风格指南，自己手打一遍，也算是阅读，顺带添加以下原文和自己的理解。 参考文章 原文 1 简介 Introduction This document serves as the complete definition of Google’s coding standards for source code in the Java™ Programming Langu">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-03-24T18:47:14.313Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Google Java风格指南">
+<meta name="twitter:description" content="转载一篇Google的Java编程风格指南，自己手打一遍，也算是阅读，顺带添加以下原文和自己的理解。 参考文章 原文 1 简介 Introduction This document serves as the complete definition of Google’s coding standards for source code in the Java™ Programming Langu">
+
+
+
+
+
+
+  <link rel="canonical" href="https://steflerjiang.github.io/2017/01/19/Google-Java风格指南/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Google Java风格指南 | 蒋士正的博客</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蒋士正的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">前游戏热爱者</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://steflerjiang.github.io/2017/01/19/Google-Java风格指南/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="蒋士正">
+      <meta itemprop="description" content="音浪 太强 不晃 会被撞到地上">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蒋士正的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Google Java风格指南
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2017-01-19 10:27:32" itemprop="dateCreated datePublished" datetime="2017-01-19T10:27:32+08:00">2017-01-19</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Edited on</span>
+                
+                <time title="Modified: 2019-03-25 02:47:14" itemprop="dateModified" datetime="2019-03-25T02:47:14+08:00">2019-03-25</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>转载一篇Google的Java编程风格指南，自己手打一遍，也算是阅读，顺带添加以下原文和自己的理解。</p>
+<p><a href="http://www.hawstein.com/posts/google-java-style.html" target="_blank" rel="noopener">参考文章</a></p>
+<p><a href="https://google.github.io/styleguide/javaguide.html" target="_blank" rel="noopener">原文</a></p>
+<h1 id="1-简介-Introduction"><a href="#1-简介-Introduction" class="headerlink" title="1 简介 Introduction"></a>1 简介 Introduction</h1><blockquote>
+<p>This document serves as the complete definition of Google’s coding standards for source code in the Java™ Programming Language. A Java source file is described as being in Google Style if and only if it adheres to the rules herein.</p>
+</blockquote>
+<blockquote>
+<p>Like other programming style guides, the issues covered span not only aesthetic issues of formatting, but other types of conventions or coding standards as well. However, this document focuses primarily on the hard-and-fast rules that we follow universally, and avoids giving advice that isn’t clearly enforceable (whether by human or tool).</p>
+</blockquote>
+<a id="more"></a>
+<p>这份文档是Google Java编程风格规范的完整定义。当且仅当一个Java源文件符合此文档中的规则，我们才认为它符合Google的Java编程风格。</p>
+<p>和其他的编程风格指南一样，这里所讨论的不仅仅是编码格式美不美观的问题，同事也讨论一些约定及编码标准。然而这份文档主要侧重于我们所普遍遵循的规则，对于那些不是明确强制要求的，我们尽量避免提供意见。</p>
+<h2 id="1-1-术语说明-Terminology-notes"><a href="#1-1-术语说明-Terminology-notes" class="headerlink" title="1.1 术语说明 Terminology notes"></a>1.1 术语说明 Terminology notes</h2><blockquote>
+<p>In this document, unless otherwise clarified:</p>
+</blockquote>
+<blockquote>
+<ol>
+<li>The term class is used inclusively to mean an “ordinary” class, enum class, interface or annotation type (@interface).</li>
+<li>The term member (of a class) is used inclusively to mean a nested class, field, method, or constructor; that is, all top-level contents of a class except initializers and comments.</li>
+<li>The term comment always refers to implementation comments. We do not use the phrase “documentation comments”, instead using the common term “Javadoc.”</li>
+</ol>
+</blockquote>
+<blockquote>
+<p>Other “terminology notes” will appear occasionally throughout the document.</p>
+</blockquote>
+<p>在本文档中，除非另有说明：</p>
+<ol>
+<li>术语class可表示普通类，枚举类，接口或者annotation类型(@interface)</li>
+<li>术语member(of a class)可表示一个内部类，字段，方法或者构造器，即一个类中出了初始化和注释外的所有顶层内容。</li>
+<li>术语comment只用来指代实现的注释(implementation comments)。我们不使用”documentation comments”一词，而是Javadoc。</li>
+</ol>
+<p>其他的术语说明会偶尔贯穿整个文档。<br><span id="jump">Hello World</span></p>
+<h2 id="1-2-指南说明-Guide-notes"><a href="#1-2-指南说明-Guide-notes" class="headerlink" title="1.2 指南说明 Guide notes"></a>1.2 指南说明 Guide notes</h2><blockquote>
+<p>Example code in this document is non-normative. That is, while the examples are in Google Style, they may not illustrate the only stylish way to represent the code. Optional formatting choices made in examples should not be enforced as rules.</p>
+</blockquote>
+<p>文档中的示例代码并不作为规范。也就是说，虽然示例代码是遵循Google编程风格的，但并不意味着这是展现这些代码的唯一方式。示例中的格式选择不应该被强制定为规则。</p>
+<h1 id="2-源文件基础-Source-file-basics"><a href="#2-源文件基础-Source-file-basics" class="headerlink" title="2 源文件基础 Source file basics"></a>2 源文件基础 Source file basics</h1><h2 id="2-1-文件名-File-name"><a href="#2-1-文件名-File-name" class="headerlink" title="2.1 文件名 File name"></a>2.1 文件名 File name</h2><blockquote>
+<p>The source file name consists of the case-sensitive name of the top-level class it contains (if which there is <a href="#md-anchor">exactly one</a>), plus the <code>.java</code> extension.</p>
+</blockquote>
+<p>源文件以其最顶层的类名来命名，大小写敏感，文件扩展名为<code>.java</code>。</p>
+<h2 id="2-2-文件编码-UTF-8-File-encoding-UTF-8"><a href="#2-2-文件编码-UTF-8-File-encoding-UTF-8" class="headerlink" title="2.2 文件编码: UTF-8 File encoding: UTF-8"></a>2.2 文件编码: UTF-8 File encoding: UTF-8</h2><blockquote>
+<p>Source files are encoded in UTF-8.</p>
+</blockquote>
+<p>源文件格式编码为UTF-8。</p>
+<h2 id="2-3-特殊字符-Special-characters"><a href="#2-3-特殊字符-Special-characters" class="headerlink" title="2.3 特殊字符 Special characters"></a>2.3 特殊字符 Special characters</h2><h3 id="2-3-1-空白字符-Whitespace-characters"><a href="#2-3-1-空白字符-Whitespace-characters" class="headerlink" title="2.3.1 空白字符 Whitespace characters"></a>2.3.1 空白字符 Whitespace characters</h3><blockquote>
+<p>Aside from the line terminator sequence, the ASCII horizontal space character (0x20) is the only whitespace character that appears anywhere in a source file. This implies that:</p>
+</blockquote>
+<blockquote>
+<ol>
+<li>All other whitespace characters in string and characters literals are escaped.</li>
+<li>Tab characters are not used for indentation.</li>
+</ol>
+</blockquote>
+<p>除了行结束符，ASCII水平空格符(0x20，即空格)是源文件中唯一允许出现的空白字符，这意味着：</p>
+<ol>
+<li>所有其他字符串中的空白字符都要进行转义。</li>
+<li>制表符不用于缩进。</li>
+</ol>
+<h3 id="2-3-2-特殊转义序列-Special-escape-sequences"><a href="#2-3-2-特殊转义序列-Special-escape-sequences" class="headerlink" title="2.3.2 特殊转义序列 Special escape sequences"></a>2.3.2 特殊转义序列 Special escape sequences</h3><blockquote>
+<p>For any character that has a special escape sequence (\b, \t, \n, \f, \r, \”, \’ and \\), that sequence is used rather than the corresponding octal (e.g. \012) or Unicode (e.g. \u000a) escape.</p>
+</blockquote>
+<p>对于具有特殊<a href="https://zh.wikipedia.org/wiki/%E8%BD%AC%E4%B9%89%E5%BA%8F%E5%88%97" target="_blank" rel="noopener">转义序列</a>的任何字符(\b, \t, \n, \f, \r, \”, \’ and \\)，我们使用它的转义序列，而不是相应的八进制(比如<code>\012</code>)或Unicode(比如<code>\u000a</code>)转义。</p>
+<h3 id="2-3-3-非ASCII字符-Non-ASCII-characters"><a href="#2-3-3-非ASCII字符-Non-ASCII-characters" class="headerlink" title="2.3.3 非ASCII字符 Non-ASCII characters"></a>2.3.3 非ASCII字符 Non-ASCII characters</h3><blockquote>
+<p>For the remaining non-ASCII characters, either the actual Unicode character (e.g. ∞) or the equivalent Unicode escape (e.g. \u221e) is used. The choice depends only on which makes the code easier to read and understand, although Unicode escapes outside string literals and comments are strongly discouraged.</p>
+</blockquote>
+<blockquote>
+<blockquote>
+<p>Tip: In the Unicode escape case, and occasionally even when actual Unicode characters are used, an explanatory comment can be very helpful.<br>Tip: Never make your code less readable simply out of fear that some programs might not handle non-ASCII characters properly. If that should happen, those programs are broken and they must be fixed.</p>
+</blockquote>
+</blockquote>
+<p>对于剩余的非ASCII字符，是使用实际的Unicode字符(比如∞)，还是使用等价的Unicode转义符(比如\u221e)，取决于哪个能让代码更易于阅读和理解。</p>
+<blockquote>
+<p>Tip: 在使用Unicode转义符或者一些实际的Unicode字符时，建议做些注释给出解释，这有助于别人阅读和理解。</p>
+</blockquote>
+<p>例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">String unitAbbrev = <span class="string">"μs"</span>; <span class="comment">//                              | 赞，即使没有注释也非常清晰</span></span><br><span class="line">String unitAbbrev = <span class="string">"\u03bcs"</span>; <span class="comment">// "μs"                    | 允许，但没有理由要这样做</span></span><br><span class="line">String unitAbbrev = <span class="string">"\u03bcs"</span>; <span class="comment">// Greek letter mu, "s"    | 允许，但这样做显得笨拙还容易出错</span></span><br><span class="line">String unitAbbrev = <span class="string">"\u03bcs"</span>; <span class="comment">//                         | 很糟，读者根本看不出这是什么</span></span><br><span class="line"><span class="keyword">return</span> <span class="string">'\ufeff'</span> + content; <span class="comment">// byte order mark             | Good，对于非打印字符，使用转义，并在必要时写上注释</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Tip: 永远不要由于害怕某些程序可能无法正确处理非ASCII字符而让你的代码可读性变差。当程序无法正确处理非ASCII字符时，程序肯定是出问题了，需要去修bug。</p>
+</blockquote>
+<h1 id="3-源文件结构-Source-file-structure"><a href="#3-源文件结构-Source-file-structure" class="headerlink" title="3 源文件结构 Source file structure"></a>3 源文件结构 Source file structure</h1><blockquote>
+<p>A source file consists of, in order:</p>
+</blockquote>
+<ol>
+<li>License or copyright information, if present</li>
+<li>Package statement</li>
+<li>Import statements</li>
+<li>Exactly one top-level class</li>
+<li>Exactly one blank line separates each section that is present.</li>
+</ol>
+<p>一个源文件应该按顺序包含一下几块：</p>
+<ol>
+<li>许可证或者版权信息</li>
+<li>package语句</li>
+<li>import语句</li>
+<li>一个顶级类</li>
+<li>每个section之间用一个空行分隔</li>
+</ol>
+<h2 id="3-1-许可证或者版权信息-License-or-copyright-information-if-present"><a href="#3-1-许可证或者版权信息-License-or-copyright-information-if-present" class="headerlink" title="3.1 许可证或者版权信息 License or copyright information, if present"></a>3.1 许可证或者版权信息 License or copyright information, if present</h2><blockquote>
+<p>If license or copyright information belongs in a file, it belongs here.</p>
+</blockquote>
+<p>如果一个文件包含许可证或者版权信息，那么它应该被放在文件最前面</p>
+<h2 id="3-2-Package语句-Package-statement"><a href="#3-2-Package语句-Package-statement" class="headerlink" title="3.2 Package语句 Package statement"></a>3.2 Package语句 Package statement</h2><blockquote>
+<p>The package statement is not line-wrapped. The column limit (Section 4.4, Column limit: 100) does not apply to package statements.</p>
+</blockquote>
+<p>package语句不需要换行。列限制(4.4节， 列长度限制：100)并不适用于package语句。(即package语句写在一行里)</p>
+<h2 id="3-3-Import语句-Import-statement"><a href="#3-3-Import语句-Import-statement" class="headerlink" title="3.3 Import语句 Import statement"></a>3.3 Import语句 Import statement</h2><h3 id="3-3-1-import不要使用通配符-No-wildcard-imports"><a href="#3-3-1-import不要使用通配符-No-wildcard-imports" class="headerlink" title="3.3.1 import不要使用通配符 No wildcard imports"></a>3.3.1 import不要使用通配符 No wildcard imports</h3><blockquote>
+<p>Wildcard imports, static or otherwise, are not used.</p>
+</blockquote>
+<p>即，不要出现类似这样的import语句：<code>import java.util.*</code>;</p>
+<h3 id="3-3-2-不要换行-No-line-wrapping"><a href="#3-3-2-不要换行-No-line-wrapping" class="headerlink" title="3.3.2 不要换行 No line-wrapping"></a>3.3.2 不要换行 No line-wrapping</h3><blockquote>
+<p>Import statements are not line-wrapped. The column limit (Section 4.4, Column limit: 100) does not apply to import statements.</p>
+</blockquote>
+<p>import语句不换行，列限制(4.4节)并不适用于import语句。(每个import语句独立成行)</p>
+<h3 id="3-3-3-顺序和间隔-Ordering-and-spacing"><a href="#3-3-3-顺序和间隔-Ordering-and-spacing" class="headerlink" title="3.3.3 顺序和间隔 Ordering and spacing"></a>3.3.3 顺序和间隔 Ordering and spacing</h3><blockquote>
+<p>Imports are ordered as follows:</p>
+</blockquote>
+<ol>
+<li>All static imports in a single block.</li>
+<li>All non-static imports in a single block.<br>If there are both static and non-static imports, a single blank line separates the two blocks. There are no other blank lines between import statements.<blockquote>
+</blockquote>
+Within each block the imported names appear in ASCII sort order. (Note: this is not the same as the import statements being in ASCII sort order, since ‘.’ sorts before ‘;’.)</li>
+</ol>
+<p>import语句的顺序如下：</p>
+<ol>
+<li>每个静态导入为一块</li>
+<li>所有非静态导入为一块</li>
+</ol>
+<p>如果既有静态导入又有非静态导入，那么两个块之间用一个空行隔开。每个块之间的导入不需要其他空行。</p>
+<p>每个块之间import语句按照ASCII顺序排列。(注意：)</p>
+<h3 id="3-3-4-类的非静态导入-No-static-import-for-classes"><a href="#3-3-4-类的非静态导入-No-static-import-for-classes" class="headerlink" title="3.3.4 类的非静态导入 No static import for classes"></a>3.3.4 类的非静态导入 No static import for classes</h3><blockquote>
+<p>Static import is not used for static nested classes. They are imported with normal imports.</p>
+</blockquote>
+<p>静态导入不适于用静态内部类。把它们看做正常的导入就行了。</p>
+<h2 id="3-4-类声明-Class-declaration"><a href="#3-4-类声明-Class-declaration" class="headerlink" title="3.4 类声明 Class declaration"></a>3.4 类声明 Class declaration</h2><h3 id="3-4-1-只有一个顶级类声明-Exactly-one-top-level-class-declaration"><a href="#3-4-1-只有一个顶级类声明-Exactly-one-top-level-class-declaration" class="headerlink" title="3.4.1 只有一个顶级类声明 Exactly one top-level class declaration"></a>3.4.1 只有一个顶级类声明 Exactly one top-level class declaration</h3><blockquote>
+<p>Each top-level class resides in a source file of its own.</p>
+</blockquote>
+<p>每个顶级类都在一个与它同名的源文件中(当然，还包含<code>.java</code>后缀)。</p>
+<h3 id="3-4-2-类成员顺序-Ordering-of-class-contents"><a href="#3-4-2-类成员顺序-Ordering-of-class-contents" class="headerlink" title="3.4.2 类成员顺序 Ordering of class contents"></a>3.4.2 类成员顺序 Ordering of class contents</h3><blockquote>
+<p>The order you choose for the members and initializers of your class can have a great effect on learnability. However, there’s no single correct recipe for how to do it; different classes may order their contents in different ways.</p>
+</blockquote>
+<blockquote>
+<p>What is important is that each class uses some logical order, which its maintainer could explain if asked. For example, new methods are not just habitually added to the end of the class, as that would yield “chronological by date added” ordering, which is not a logical ordering.</p>
+</blockquote>
+<p>类的成员顺序对易学性有很大的影响，但这也不存在唯一的通用法则。不同的类对成员的排序可能是不同的。</p>
+<p>最重要的一点，每个类应该以某种逻辑去排序它的成员，维护者应该要能解释这种排序逻辑。比如， 新的方法不能总是习惯性地添加到类的结尾，因为这样就是按时间顺序而非某种逻辑来排序的。</p>
+<h4 id="3-4-2-1-重载：永不分离-Overloads-never-split"><a href="#3-4-2-1-重载：永不分离-Overloads-never-split" class="headerlink" title="3.4.2.1 重载：永不分离 Overloads: never split"></a>3.4.2.1 重载：永不分离 Overloads: never split</h4><blockquote>
+<p>When a class has multiple constructors, or multiple methods with the same name, these appear sequentially, with no other code in between (not even private members).</p>
+</blockquote>
+<p>当一个类有多个构造器时，或者有多个同名方法，它们应该连续出现，中间不允许有其他代码，即使是私有成员对象也不行。</p>
+<h1 id="4-格式-Formatting"><a href="#4-格式-Formatting" class="headerlink" title="4 格式 Formatting"></a>4 格式 Formatting</h1><blockquote>
+<p>Terminology Note: block-like construct refers to the body of a class, method or constructor. Note that, by Section 4.8.3.1 on array initializers, any array initializer may optionally be treated as if it were a block-like construct.</p>
+</blockquote>
+<p>术语说明：块状结构(block-like construct)指一个类，方法或者构造函数的主题。需要注意的是，在节4.8.3.1中数组初始化的初始值也可被选择性地视为块状结构。</p>
+<h2 id="4-1-大括号-Braces"><a href="#4-1-大括号-Braces" class="headerlink" title="4.1 大括号 Braces"></a>4.1 大括号 Braces</h2><h3 id="4-1-1-使用大括号-即使是可选的-Braces-are-used-where-optional"><a href="#4-1-1-使用大括号-即使是可选的-Braces-are-used-where-optional" class="headerlink" title="4.1.1 使用大括号(即使是可选的) Braces are used where optional"></a>4.1.1 使用大括号(即使是可选的) Braces are used where optional</h3><blockquote>
+<p>Braces are used with if, else, for, do and while statements, even when the body is empty or contains only a single statement.</p>
+</blockquote>
+<p>大括号与<code>if, else, for, do, while</code>语句一起使用，即使只有一条语句(或是空)，也应该把大括号写上。</p>
+<h3 id="4-1-2-非空块：K-amp-R风格-Nonempty-blocks-K-amp-R-style"><a href="#4-1-2-非空块：K-amp-R风格-Nonempty-blocks-K-amp-R-style" class="headerlink" title="4.1.2 非空块：K &amp; R风格  Nonempty blocks: K &amp; R style"></a>4.1.2 非空块：K &amp; R风格  Nonempty blocks: K &amp; R style</h3><blockquote>
+<p>Braces follow the Kernighan and Ritchie style (“Egyptian brackets”) for nonempty blocks and block-like constructs:</p>
+</blockquote>
+<blockquote>
+<ol>
+<li>No line break before the opening brace.</li>
+<li>Line break after the opening brace.</li>
+<li>Line break before the closing brace.</li>
+<li>Line break after the closing brace, only if that brace terminates a statement or terminates the body of a method, constructor, or named class. For example, there is no line break after the brace if it is followed by else or a comma.</li>
+</ol>
+</blockquote>
+<p>对于非空块和块状结构，大括号应遵循Kernighan和Ritchie风格(<a href="https://blog.codinghorror.com/new-programming-jargon/" target="_blank" rel="noopener">Egyptian brackets</a>):</p>
+<p>Examples:<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> () -&gt; &#123;</span><br><span class="line">  <span class="keyword">while</span> (condition()) &#123;</span><br><span class="line">    method();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> <span class="keyword">new</span> MyClass() &#123;</span><br><span class="line">  <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">method</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (condition()) &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        something();</span><br><span class="line">      &#125; <span class="keyword">catch</span> (ProblemException e) &#123;</span><br><span class="line">        recover();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (otherCondition()) &#123;</span><br><span class="line">      somethingElse();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      lastThing();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>A few exceptions for enum classes are given in Section 4.8.1, Enum classes.</p>
+</blockquote>
+<p>节4.8.1给出了enum类的一些例外。</p>
+<h3 id="4-1-3-空块：可以用简洁版本-Empty-blocks-may-be-concise"><a href="#4-1-3-空块：可以用简洁版本-Empty-blocks-may-be-concise" class="headerlink" title="4.1.3 空块：可以用简洁版本 Empty blocks: may be concise"></a>4.1.3 空块：可以用简洁版本 Empty blocks: may be concise</h3><blockquote>
+<p>An empty block or block-like construct may be in K &amp; R style (as described in Section 4.1.2). Alternatively, it may be closed immediately after it is opened, with no characters or line break in between ({}), unless it is part of a multi-block statement (one that directly contains multiple blocks: if/else or try/catch/finally).</p>
+</blockquote>
+<p>一个空的块状结构里什么也不包含，大括号可以简洁地写成<code>{}</code>，不需要换行。例外：如果它是一个多块语句的一部分(<code>if/else</code> 或 <code>try/catch/finally</code>) ，即使大括号内没内容，右大括号也要换行。</p>
+<p>Examples:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">// This is acceptable</span><br><span class="line">void doNothing() &#123;&#125;</span><br><span class="line"></span><br><span class="line">// This is equally acceptable</span><br><span class="line">void doNothingElse() &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// This is not acceptable: No concise empty blocks in a multi-block statement</span><br><span class="line">try &#123;</span><br><span class="line">  doSomething();</span><br><span class="line">&#125; catch (Exception e) &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="4-2-块缩进：2个空格-Block-indentation-2-spaces"><a href="#4-2-块缩进：2个空格-Block-indentation-2-spaces" class="headerlink" title="4.2 块缩进：2个空格 Block indentation: +2 spaces"></a>4.2 块缩进：2个空格 Block indentation: +2 spaces</h2><blockquote>
+<p>Each time a new block or block-like construct is opened, the indent increases by two spaces. When the block ends, the indent returns to the previous indent level. The indent level applies to both code and comments throughout the block. (See the example in Section 4.1.2, Nonempty blocks: K &amp; R Style.)</p>
+</blockquote>
+<p>每次新加一个块或者块状结构，缩进需要增加2个空格(。。。我自己写的都是4个空格)。当块结束时，缩进返回先前的级别。缩进级别同时使用于代码和注释。</p>
+<h2 id="4-3-一行一个语句-One-statement-per-line"><a href="#4-3-一行一个语句-One-statement-per-line" class="headerlink" title="4.3 一行一个语句 One statement per line"></a>4.3 一行一个语句 One statement per line</h2><blockquote>
+<p>Each statement is followed by a line break.</p>
+</blockquote>
+<p>每一个语句都应该独占一行。</p>
+<h2 id="4-4-列限制：100-Column-limit-100"><a href="#4-4-列限制：100-Column-limit-100" class="headerlink" title="4.4 列限制：100 Column limit: 100"></a>4.4 列限制：100 Column limit: 100</h2><blockquote>
+<p>Java code has a column limit of 100 characters. Except as noted below, any line that would exceed this limit must be line-wrapped, as explained in Section 4.5, Line-wrapping.</p>
+</blockquote>
+<blockquote>
+<p>Exceptions:</p>
+</blockquote>
+<blockquote>
+<ol>
+<li>Lines where obeying the column limit is not possible (for example, a long URL in Javadoc, or a long JSNI method reference).</li>
+<li>package and import statements (see Sections 3.2 Package statement and 3.3 Import statements).</li>
+<li>Command lines in a comment that may be cut-and-pasted into a shell.</li>
+</ol>
+</blockquote>
+<p>Java代码一行最多100个字符。除了以下限制以外，任何超过列数限制的行必须重新换行</p>
+<p>以下例外：</p>
+<ol>
+<li>不可能满足列限制的行(例如，Javadoc中的一个长URL，或是一个长的JSNI方法参考)。</li>
+<li><code>package</code>和<code>import</code>语句(见3.2节和3.3节)。</li>
+<li>注释中那些可能被剪切并粘贴到shell中的命令行。</li>
+</ol>
+<h2 id="4-5-自动换行-Line-wrapping"><a href="#4-5-自动换行-Line-wrapping" class="headerlink" title="4.5 自动换行 Line-wrapping"></a>4.5 自动换行 Line-wrapping</h2><blockquote>
+<p>Terminology Note: When code that might otherwise legally occupy a single line is divided into multiple lines, this activity is called line-wrapping.</p>
+</blockquote>
+<blockquote>
+<p>There is no comprehensive, deterministic formula showing exactly how to line-wrap in every situation. Very often there are several valid ways to line-wrap the same piece of code.</p>
+</blockquote>
+<blockquote>
+<blockquote>
+<p>Note: While the typical reason for line-wrapping is to avoid overflowing the column limit, even code that would in fact fit within the column limit may be line-wrapped at the author’s discretion.</p>
+</blockquote>
+</blockquote>
+<blockquote>
+<blockquote>
+<p>Tip: Extracting a method or local variable may solve the problem without the need to line-wrap.</p>
+</blockquote>
+</blockquote>
+<p>术语说明：一般情况下，一行长代码为了避免超出列限制而被分为多行，我们称之为自动换行(line-wrapping)。</p>
+<p>我们并没有全面，确定性的准则来决定在每一种情况下如何自动换行。很多时候，对于同一行代码会有好几种有效的自动换行方式。</p>
+<blockquote>
+<p>Note: 有时候，一行代码即使在列限制以内，为了避免超出列限制，程序员也会考虑自动换行。</p>
+</blockquote>
+<blockquote>
+<p>Tip: 提取方法或局部变量可以在不换行的情况下解决代码过长的问题(是合理缩短命名长度吧)</p>
+</blockquote>
+<h3 id="4-5-1-从哪里断开-Where-to-break"><a href="#4-5-1-从哪里断开-Where-to-break" class="headerlink" title="4.5.1 从哪里断开 Where to break"></a>4.5.1 从哪里断开 Where to break</h3><blockquote>
+<p>The prime directive of line-wrapping is: prefer to break at a higher syntactic level. Also:</p>
+</blockquote>
+<blockquote>
+<ol>
+<li>When a line is broken at a non-assignment operator the break comes before the symbol. (Note that this is not the same practice used in Google style for other languages, such as C++ and JavaScript.)<ul>
+<li>This also applies to the following “operator-like” symbols:<ul>
+<li>the dot separator (.)</li>
+<li>the two colons of a method reference (::)</li>
+<li>an ampersand in a type bound (<t extends foo & bar>)</t></li>
+<li>a pipe in a catch block (catch (FooException | BarException e)).</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>When a line is broken at an assignment operator the break typically comes after the symbol, but either way is acceptable.<ul>
+<li>This also applies to the “assignment-operator-like” colon in an enhanced for (“foreach”) statement.</li>
+</ul>
+</li>
+<li>A method or constructor name stays attached to the open parenthesis (() that follows it.</li>
+<li>A comma (,) stays attached to the token that precedes it.</li>
+<li>A line is never broken adjacent to the arrow in a lambda, except that a break may come immediately after the arrow if the body of the lambda consists of a single unbraced expression. Examples:</li>
+</ol>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">MyLambda&lt;String, Long, Object&gt; lambda =</span><br><span class="line">    (String label, Long value, Object obj) -&gt; &#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;;</span><br><span class="line">Predicate&lt;String&gt; predicate = str -&gt;</span><br><span class="line">    longExpressionInvolving(str);</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Note: The primary goal for line wrapping is to have clear code, not necessarily code that fits in the smallest number of lines.</p>
+</blockquote>
+<p>自动换行的基本准则是：更倾向于在更高的语法级别处断开。</p>
+<ol>
+<li>如果在<code>非赋值运算符</code>处断开，那么在该符号<strong>前</strong>断开。(注意: 这一点与Google其他语言的编程风格不同，如c++或者js)。<ul>
+<li>这也适用于一下的<code>类运算符号</code>：<ul>
+<li>点分隔号 (.)</li>
+<li>方法引用中的双冒号 (::)</li>
+<li>类型界限中的&amp; (<t extends foo & bar>)</t></li>
+<li>catch语句中的管道符号 (catch (FooException | BarException e))</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>如果在<code>赋值运算符处</code>断开，通常的做法是在该符号后断开(比如=，它与前面的内容留在同一行)。<ul>
+<li>这条规则也适用于foreach语句中的分号。</li>
+</ul>
+</li>
+<li>方法名或构造函数名与左括号留在同一行。</li>
+<li>逗号(,)与其前面的内容留在同一行。</li>
+<li>在lambda语句中不要在箭头附近换行，除非，箭头后面只有一行没有被大括号括起来的语句，</li>
+</ol>
+<p>注意: 自动换行最主要的目的是为了让代码更整洁，而不是为了让代码行数最少。</p>
+<h3 id="4-5-2-自动换行时至少缩进4-空格-Indent-continuation-lines-at-least-4-spaces"><a href="#4-5-2-自动换行时至少缩进4-空格-Indent-continuation-lines-at-least-4-spaces" class="headerlink" title="4.5.2 自动换行时至少缩进4+空格 Indent continuation lines at least +4 spaces"></a>4.5.2 自动换行时至少缩进4+空格 Indent continuation lines at least +4 spaces</h3><blockquote>
+<p>When line-wrapping, each line after the first (each continuation line) is indented at least +4 from the original line.</p>
+<p>When there are multiple continuation lines, indentation may be varied beyond +4 as desired. In general, two continuation lines use the same indentation level if and only if they begin with syntactically parallel elements.</p>
+<p>Section 4.6.3 on Horizontal alignment addresses the discouraged practice of using a variable number of spaces to align certain tokens with previous lines.</p>
+</blockquote>
+<p>自动换行时，第一行后的每一行至少比第一行多缩进4个空格。</p>
+<p>当存在连续自动换行时，缩进可能会多缩进不只4个空格(语法元素存在多级时)。一般而言，两个连续行使用相同的缩进当且仅当它们开始于同级语法元素。</p>
+<p>第4.6.3水平对齐一节中指出，不鼓励使用可变数目的空格来对齐前面行的符号。</p>
+<h2 id="4-6-Whitespace-空格"><a href="#4-6-Whitespace-空格" class="headerlink" title="4.6 Whitespace 空格"></a>4.6 Whitespace 空格</h2><blockquote>
+<p>作者：Hawsteain<br>出处：<a href="http://hawstein.com/posts/google-java-style.html" target="_blank" rel="noopener">原作者链接</a></p>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/01/12/windows查看端口占用/" rel="next" title="windows查看端口占用">
+                <i class="fa fa-chevron-left"></i> windows查看端口占用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/03/10/Lucene索引内存结构/" rel="prev" title="Lucene索引内存结构">
+                Lucene索引内存结构 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">蒋士正</p>
+              <div class="site-description motion-element" itemprop="description">音浪 太强 不晃 会被撞到地上</div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">30</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">8</span>
+                    <span class="site-state-item-name">categories</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">20</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-简介-Introduction"><span class="nav-number">1.</span> <span class="nav-text">1 简介 Introduction</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-术语说明-Terminology-notes"><span class="nav-number">1.1.</span> <span class="nav-text">1.1 术语说明 Terminology notes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-指南说明-Guide-notes"><span class="nav-number">1.2.</span> <span class="nav-text">1.2 指南说明 Guide notes</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-源文件基础-Source-file-basics"><span class="nav-number">2.</span> <span class="nav-text">2 源文件基础 Source file basics</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-文件名-File-name"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 文件名 File name</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-文件编码-UTF-8-File-encoding-UTF-8"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 文件编码: UTF-8 File encoding: UTF-8</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-特殊字符-Special-characters"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 特殊字符 Special characters</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-1-空白字符-Whitespace-characters"><span class="nav-number">2.3.1.</span> <span class="nav-text">2.3.1 空白字符 Whitespace characters</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-2-特殊转义序列-Special-escape-sequences"><span class="nav-number">2.3.2.</span> <span class="nav-text">2.3.2 特殊转义序列 Special escape sequences</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-3-非ASCII字符-Non-ASCII-characters"><span class="nav-number">2.3.3.</span> <span class="nav-text">2.3.3 非ASCII字符 Non-ASCII characters</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-源文件结构-Source-file-structure"><span class="nav-number">3.</span> <span class="nav-text">3 源文件结构 Source file structure</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-许可证或者版权信息-License-or-copyright-information-if-present"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 许可证或者版权信息 License or copyright information, if present</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-Package语句-Package-statement"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 Package语句 Package statement</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-3-Import语句-Import-statement"><span class="nav-number">3.3.</span> <span class="nav-text">3.3 Import语句 Import statement</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-1-import不要使用通配符-No-wildcard-imports"><span class="nav-number">3.3.1.</span> <span class="nav-text">3.3.1 import不要使用通配符 No wildcard imports</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-2-不要换行-No-line-wrapping"><span class="nav-number">3.3.2.</span> <span class="nav-text">3.3.2 不要换行 No line-wrapping</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-3-顺序和间隔-Ordering-and-spacing"><span class="nav-number">3.3.3.</span> <span class="nav-text">3.3.3 顺序和间隔 Ordering and spacing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-4-类的非静态导入-No-static-import-for-classes"><span class="nav-number">3.3.4.</span> <span class="nav-text">3.3.4 类的非静态导入 No static import for classes</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-4-类声明-Class-declaration"><span class="nav-number">3.4.</span> <span class="nav-text">3.4 类声明 Class declaration</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-1-只有一个顶级类声明-Exactly-one-top-level-class-declaration"><span class="nav-number">3.4.1.</span> <span class="nav-text">3.4.1 只有一个顶级类声明 Exactly one top-level class declaration</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-2-类成员顺序-Ordering-of-class-contents"><span class="nav-number">3.4.2.</span> <span class="nav-text">3.4.2 类成员顺序 Ordering of class contents</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-4-2-1-重载：永不分离-Overloads-never-split"><span class="nav-number">3.4.2.1.</span> <span class="nav-text">3.4.2.1 重载：永不分离 Overloads: never split</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-格式-Formatting"><span class="nav-number">4.</span> <span class="nav-text">4 格式 Formatting</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-大括号-Braces"><span class="nav-number">4.1.</span> <span class="nav-text">4.1 大括号 Braces</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-1-使用大括号-即使是可选的-Braces-are-used-where-optional"><span class="nav-number">4.1.1.</span> <span class="nav-text">4.1.1 使用大括号(即使是可选的) Braces are used where optional</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-2-非空块：K-amp-R风格-Nonempty-blocks-K-amp-R-style"><span class="nav-number">4.1.2.</span> <span class="nav-text">4.1.2 非空块：K &amp; R风格  Nonempty blocks: K &amp; R style</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-3-空块：可以用简洁版本-Empty-blocks-may-be-concise"><span class="nav-number">4.1.3.</span> <span class="nav-text">4.1.3 空块：可以用简洁版本 Empty blocks: may be concise</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-块缩进：2个空格-Block-indentation-2-spaces"><span class="nav-number">4.2.</span> <span class="nav-text">4.2 块缩进：2个空格 Block indentation: +2 spaces</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-一行一个语句-One-statement-per-line"><span class="nav-number">4.3.</span> <span class="nav-text">4.3 一行一个语句 One statement per line</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4-列限制：100-Column-limit-100"><span class="nav-number">4.4.</span> <span class="nav-text">4.4 列限制：100 Column limit: 100</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-5-自动换行-Line-wrapping"><span class="nav-number">4.5.</span> <span class="nav-text">4.5 自动换行 Line-wrapping</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-1-从哪里断开-Where-to-break"><span class="nav-number">4.5.1.</span> <span class="nav-text">4.5.1 从哪里断开 Where to break</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-2-自动换行时至少缩进4-空格-Indent-continuation-lines-at-least-4-spaces"><span class="nav-number">4.5.2.</span> <span class="nav-text">4.5.2 自动换行时至少缩进4+空格 Indent continuation lines at least +4 spaces</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-6-Whitespace-空格"><span class="nav-number">4.6.</span> <span class="nav-text">4.6 Whitespace 空格</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">蒋士正</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.0.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=7.0.1"></script>
+
+  <script src="/js/src/motion.js?v=7.0.1"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=7.0.1"></script>
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=7.0.1"></script>
+<script src="/js/src/post-details.js?v=7.0.1"></script>
+
+
+
+  
+
+
+  <script src="/js/src/next-boot.js?v=7.0.1"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
